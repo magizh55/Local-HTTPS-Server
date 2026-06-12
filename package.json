@@ -1,0 +1,29 @@
+{
+  "name": "local-https-server",
+  "version": "1.0.0",
+  "description": "Local HTTPS server with self-signed SSL certificate and Wireshark traffic analysis demo",
+  "main": "server-https.js",
+  "scripts": {
+    "start": "node -e \"require('child_process').spawn('node',['server-https.js'],{stdio:'inherit'});require('child_process').spawn('node',['server-http.js'],{stdio:'inherit'})\"",
+    "https": "node server-https.js",
+    "http": "node server-http.js",
+    "generate-cert": "bash certs/generate-cert.sh"
+  },
+  "keywords": [
+    "https",
+    "ssl",
+    "tls",
+    "self-signed",
+    "certificate",
+    "wireshark",
+    "network",
+    "security",
+    "nodejs"
+  ],
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "dependencies": {}
+}
