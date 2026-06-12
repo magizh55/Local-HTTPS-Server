@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Local HTTPS Demo</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d2e;
+      --card: #1e2235;
+      --border: #2a2f4a;
+      --green: #00d4a0;
+      --red: #ff4757;
+      --yellow: #ffd32a;
+      --blue: #4a9eff;
+      --text: #e8eaf6;
+      --muted: #8892b0;
+      --font-mono: 'Courier New', Courier, monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      padding: 2rem 1rem;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+
+    .protocol-badge {
+      display: inline-block;
+      padding: 0.4rem 1.2rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+    }
+    .badge-https { background: rgba(0,212,160,0.15); color: var(--green); border: 1px solid var(--green); }
+    .badge-http  { background: rgba(255,71,87,0.15);  color: var(--red);   border: 1px solid var(--red);   }
+
+    h1 { font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 700; margin-bottom: 0.5rem; }
+    .subtitle { color: var(--muted); font-size: 1rem; }
+
+    .container { max-width: 900px; margin: 0 auto; }
+
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+    }
+
+    .card h3 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 0.75rem; }
+    .card .value { font-size: 1.15rem; font-weight: 600; }
+    .card .value.green { color: var(--green); }
+    .card .value.red   { color: var(--red); }
+    .card .value.blue  { color: var(--blue); }
+
+    .section-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin: 2rem 0 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .comparison {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    @media (max-width: 600px) { .comparison { grid-template-columns: 1fr; } }
+
+    .compare-box {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .compare-box .box-header {
+      padding: 0.75rem 1rem;
+      font-size: 0.85rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .box-header.https-header { background: rgba(0,212,160,0.1); color: var(--green); border-bottom: 1px solid rgba(0,212,160,0.2); }
+    .box-header.http-header  { background: rgba(255,71,87,0.1);  color: var(--red);   border-bottom: 1px solid rgba(255,71,87,0.2);  }
+
+    .box-content {
+      padding: 1rem;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      line-height: 1.7;
+      color: var(--muted);
+      min-height: 120px;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    .box-content .highlight { color: var(--yellow); }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.6rem 1.4rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: opacity 0.2s;
+    }
+    .btn:hover { opacity: 0.85; }
+    .btn-green { background: var(--green); color: #000; }
+    .btn-red   { background: var(--red);   color: #fff; }
+    .btn-row   { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 2rem; }
+
+    #api-result {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      line-height: 1.7;
+      min-height: 80px;
+      color: var(--text);
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    .steps {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    .steps ol { padding-left: 1.25rem; }
+    .steps li { margin-bottom: 0.6rem; color: var(--muted); line-height: 1.6; }
+    .steps li strong { color: var(--text); }
+    .steps code {
+      background: rgba(74,158,255,0.12);
+      color: var(--blue);
+      padding: 0.1rem 0.4rem;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 0.85em;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 3rem;
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <header>
+    <div class="protocol-badge" id="protocolBadge">Detecting...</div>
+    <h1>Local HTTPS Server Demo</h1>
+    <p class="subtitle">Self-Signed SSL Certificate · Wireshark Traffic Analysis</p>
+  </header>
+
+  <!-- Info Cards -->
+  <div class="grid">
+    <div class="card">
+      <h3>Protocol</h3>
+      <div class="value" id="protocol">—</div>
+    </div>
+    <div class="card">
+      <h3>Connection</h3>
+      <div class="value" id="connection">—</div>
+    </div>
+    <div class="card">
+      <h3>Port</h3>
+      <div class="value blue" id="port">—</div>
+    </div>
+    <div class="card">
+      <h3>Hostname</h3>
+      <div class="value blue" id="hostname">—</div>
+    </div>
+  </div>
+
+  <!-- Wireshark Comparison -->
+  <p class="section-title">🔍 Wireshark Traffic Comparison</p>
+  <div class="comparison">
+    <div class="compare-box">
+      <div class="box-header https-header">🔒 HTTPS (Port 8443) — Encrypted</div>
+      <div class="box-content">TLSv1.3 Record Layer
+  Content Type: Application Data (23)
+  Version: TLS 1.2 (0x0303)
+  Length: 247
+  <span class="highlight">Encrypted Data:
+  8f3a2c1b9e4d7f2a0c5b8e3d6f1a4c7b
+  2e5d8f1a4c7b0e3d6f9a2c5b8e1d4f7a
+  ← Unreadable without private key!</span></div>
+    </div>
+    <div class="compare-box">
+      <div class="box-header http-header">⚠️ HTTP (Port 8080) — Plaintext</div>
+      <div class="box-content">GET / HTTP/1.1
+Host: localhost:8080
+User-Agent: Mozilla/5.0...
+
+HTTP/1.1 200 OK
+<span class="highlight">Content: &lt;html&gt;...
+password=Secret123
+token=eyJhbGciOiJIUzI1
+← Anyone can read this!</span></div>
+    </div>
+  </div>
+
+  <!-- Live API Test -->
+  <p class="section-title">🧪 Live API Test</p>
+  <div class="btn-row">
+    <button class="btn btn-green" onclick="fetchAPI('https')">🔒 Fetch HTTPS /api/secret</button>
+    <button class="btn btn-red"   onclick="fetchAPI('http')">⚠️ Fetch HTTP /api/secret</button>
+  </div>
+  <div id="api-result">← Click a button above to call the API endpoint and see the response</div>
+
+  <!-- Wireshark Steps -->
+  <p class="section-title">📡 How to Verify with Wireshark</p>
+  <div class="steps">
+    <ol>
+      <li><strong>Start both servers:</strong> Run <code>npm start</code> in the project directory</li>
+      <li><strong>Open Wireshark</strong> → Select the <code>Loopback (lo)</code> interface</li>
+      <li><strong>Capture HTTP:</strong> Filter <code>tcp.port == 8080</code> → Visit http://localhost:8080 → Right-click a packet → <em>Follow TCP Stream</em> → See plaintext HTML</li>
+      <li><strong>Capture HTTPS:</strong> Filter <code>tcp.port == 8443</code> → Visit https://localhost:8443 → Right-click a packet → <em>Follow TCP Stream</em> → See encrypted TLS data</li>
+      <li><strong>TLS Handshake:</strong> Filter <code>tls.handshake</code> to see the ClientHello, ServerHello, and certificate exchange</li>
+    </ol>
+  </div>
+
+  <footer>
+    🔐 Self-Signed SSL Demo &nbsp;·&nbsp; For educational use only &nbsp;·&nbsp; Not for production
+  </footer>
+
+</div>
+
+<script>
+  // Detect protocol and update UI
+  const isHTTPS = location.protocol === 'https:';
+  const badge = document.getElementById('protocolBadge');
+  const protocolEl = document.getElementById('protocol');
+  const connectionEl = document.getElementById('connection');
+
+  badge.textContent = isHTTPS ? '🔒 HTTPS — Encrypted' : '⚠️ HTTP — Unencrypted';
+  badge.className = 'protocol-badge ' + (isHTTPS ? 'badge-https' : 'badge-http');
+
+  protocolEl.textContent = location.protocol.toUpperCase().replace(':', '');
+  protocolEl.className = 'value ' + (isHTTPS ? 'green' : 'red');
+
+  connectionEl.textContent = isHTTPS ? '✅ Encrypted (TLS)' : '❌ Unencrypted';
+  connectionEl.className = 'value ' + (isHTTPS ? 'green' : 'red');
+
+  document.getElementById('port').textContent = location.port || (isHTTPS ? '443' : '80');
+  document.getElementById('hostname').textContent = location.hostname;
+
+  async function fetchAPI(proto) {
+    const resultEl = document.getElementById('api-result');
+    const port = proto === 'https' ? '8443' : '8080';
+    const url = `${proto}://localhost:${port}/api/secret`;
+
+    resultEl.textContent = `⏳ Fetching ${url} ...`;
+
+    try {
+      const res = await fetch(url);
+      const data = await res.json();
+      resultEl.textContent = JSON.stringify(data, null, 2);
+    } catch (err) {
+      resultEl.textContent = `⚠️  Note: Cross-origin fetch blocked by browser.\n\nTo test directly, visit:\n  ${url}\n\nOr use curl:\n  curl -k ${url}`;
+    }
+  }
+</script>
+
+</body>
+</html>
